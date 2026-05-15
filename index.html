@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Ventas - Sistema de Gestión</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="logo.png" alt="Logo" class="header-logo" loading="eager" decoding="async">
+            <h1>ERP Ventas</h1>
+            <p>Sistema de Gestión de Ventas</p>
+            <div id="session-info" class="session-info" style="display: none;">
+                <span id="session-user-label"></span>
+                <button type="button" id="btn-test-api" class="btn btn-secondary">Probar API</button>
+                <button type="button" id="btn-logout" class="btn btn-danger">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <section id="login-section" class="login-section">
+            <form id="login-form" class="form login-form" autocomplete="off">
+                <h2>Iniciar sesión</h2>
+                <div class="form-group">
+                    <label for="login-email">Correo</label>
+                    <input type="email" id="login-email" required placeholder="correo@empresa.com">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" id="login-password" required placeholder="Ingresa tu contraseña">
+                </div>
+                <button type="submit" class="btn btn-primary">Ingresar</button>
+                <div id="login-message" class="message"></div>
+            </form>
+        </section>
+
+        <nav id="main-navbar" class="navbar" style="display: none;">
+            <ul>
+                <li><a href="#" class="nav-link active" data-section="dashboard" data-roles="gerente,vendedor">Dashboard</a></li>
+                <li><a href="#" class="nav-link" data-section="interacciones" data-roles="gerente,vendedor">Interacciones</a></li>
+                <li><a href="#" class="nav-link" data-section="sales" data-roles="gerente,vendedor">Ventas</a></li>
+                <li><a href="#" class="nav-link" data-section="new-sale" data-roles="vendedor">Nueva Venta</a></li>
+                <li><a href="#" class="nav-link" data-section="support-tickets" data-roles="gerente,vendedor">Tickets Soporte</a></li>
+                <li><a href="#" class="nav-link" data-section="clients" data-roles="gerente">Clientes</a></li>
+                <li><a href="#" class="nav-link" data-section="kpis" data-roles="gerente">KPIs</a></li>
+                <li><a href="#" class="nav-link" data-section="opportunities" data-roles="gerente,vendedor">Oportunidades</a></li>
+                <li><a href="#" class="nav-link" data-section="config" data-roles="gerente,it">Configuración</a></li>
+            </ul>
+        </nav>
+
+        <main id="main-content" class="main-content" style="display: none;">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <h2>Dashboard</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3>Estado del Sistema</h3>
+                        <p id="status-text">Verificando...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interacciones Section -->
+            <section id="interacciones" class="section">
+                <h2>Gestión de Interacciones</h2>
+                
+                <form id="interaction-form" class="form">
+                    <div class="form-group">
+                        <label for="interaction-cliente">Cliente:</label>
+                        <select id="interaction-cliente" required>
+                            <option value="">Selecciona un cliente...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipo">Tipo de Interacción:</label>
+                        <select id="tipo" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="LLAMADA">Llamada</option>
+                            <option value="EMAIL">Email</option>
+                            <option value="REUNION">Reunión</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="resumen">Resumen: <span id="char-count">(0/20)</span></label>
+                        <textarea id="resumen" rows="4" placeholder="Escribe al menos 20 caracteres" minlength="20" required></textarea>
+                        <small style="color: #666;">Mínimo 20 caracteres requeridos</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usuario">Usuario:</label>
+                        <input type="text" id="usuario" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar Interacción</button>
+                </form>
+
+                <div id="message" class="message"></div>
+
+                <h3>Historial de Interacciones</h3>
+                <div class="form-group" style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                    <select id="historial-cliente" style="flex: 1;">
+                        <option value="">Selecciona un cliente...</option>
+                    </select>
+                    <button type="button" id="btn-cargar-historial" class="btn btn-primary">Cargar Historial</button>
+                </div>
+                <div id="interactions-list" class="interactions-list">
+                    <p>Selecciona un cliente y haz clic en "Cargar Historial"</p>
+                </div>
+            </section>
+
+            <!-- Sales Section -->
+            <section id="sales" class="section">
+                <h2>Reporte de Ventas</h2>
+
+                <form id="sales-form" class="form">
+                    <div class="form-group">
+                        <label for="sales-period">Período:</label>
+                        <select id="sales-period" required>
+                            <option value="month">Mes</option>
+                            <option value="week">Semana</option>
+                            <option value="day">Día</option>
+                            <option value="year">Año</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sales-vendedor">Vendedor:</label>
+                        <select id="sales-vendedor">
+                            <option value="">Todos los vendedores (Vista General)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sales-codigo-cliente">Código cliente (opcional):</label>
+                        <input type="text" id="sales-codigo-cliente" placeholder="Ej: CLI-0001">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Cargar reporte</button>
+                </form>
+
+                <div id="vendedor-stats" class="vendedor-stats" style="display: none;">
+                    <h4>Estadísticas del Vendedor</h4>
+                    <div id="vendedor-stats-content"></div>
+                </div>
+
+                <div id="rendimiento-vendedores" class="rendimiento-section">
+                    <h4>Rendimiento del Equipo</h4>
+                    <div id="rendimiento-list"></div>
+                </div>
+
+                <div id="individual-sales" class="individual-sales" style="display: none;">
+                    <h4>Ventas Individuales del Vendedor</h4>
+                    <div id="individual-sales-list"></div>
+                </div>
+
+                <div id="sales-message" class="message"></div>
+
+                <h3>Resultados</h3>
+                <div id="sales-list" class="interactions-list">
+                    <p>Selecciona un período y carga el reporte.</p>
+                </div>
+
+                <div class="sales-charts">
+                    <div class="chart-card">
+                        <h3>Ventas por período</h3>
+                        <canvas id="sales-bar-chart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Tendencia de ventas</h3>
+                        <canvas id="sales-line-chart"></canvas>
+                    </div>
+                </div>
+
+                <div id="sales-export-actions" style="display: none; gap: 0.75rem; flex-wrap: wrap; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+                    <button type="button" id="btn-export-excel" class="btn btn-secondary">Exportar a Excel</button>
+                    <button type="button" id="btn-export-pdf" class="btn btn-primary">Exportar a PDF</button>
+                </div>
+            </section>
+
+            <section id="new-sale" class="section">
+                <h2>Crear Nueva Venta</h2>
+
+                <form id="new-sale-form" class="form">
+                    <div class="form-group">
+                        <label for="new-sale-client-search">Buscar cliente:</label>
+                        <input type="text" id="new-sale-client-search" placeholder="Buscar por código, nombre, correo o NIT">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-sale-cliente">Cliente:</label>
+                        <select id="new-sale-cliente" required>
+                            <option value="">Selecciona un cliente...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-sale-vendedor">Vendedor:</label>
+                        <input type="text" id="new-sale-vendedor" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-sale-total">Total:</label>
+                        <input type="number" id="new-sale-total" min="0.01" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-sale-date">Fecha de venta:</label>
+                        <input type="date" id="new-sale-date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-sale-estado">Estado:</label>
+                        <select id="new-sale-estado" required>
+                            <option value="CONFIRMADA">CONFIRMADA</option>
+                            <option value="PENDIENTE">PENDIENTE</option>
+                            <option value="ANULADA">ANULADA</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Guardar venta</button>
+                </form>
+
+                <div id="new-sale-message" class="message"></div>
+
+                <h3>Listado de clientes</h3>
+                <div id="sales-clients-list" class="interactions-list">
+                    <p>Cargando clientes...</p>
+                </div>
+            </section>
+
+            <section id="support-tickets" class="section">
+                <h2>Tickets de Soporte por Cliente</h2>
+
+                <form id="support-ticket-form" class="form">
+                    <h3>Crear Ticket</h3>
+                    <div class="form-group">
+                        <label for="support-ticket-title">Título</label>
+                        <input type="text" id="support-ticket-title" placeholder="Ej: Error al generar factura" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="support-ticket-description">Descripción</label>
+                        <textarea id="support-ticket-description" rows="3" placeholder="Describe la incidencia"></textarea>
+                    </div>
+                    <div class="form-group" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
+                        <div>
+                            <label for="support-ticket-state">Estado</label>
+                            <select id="support-ticket-state">
+                                <option value="ABIERTO">ABIERTO</option>
+                                <option value="EN_PROCESO">EN_PROCESO</option>
+                                <option value="RESUELTO">RESUELTO</option>
+                                <option value="CERRADO">CERRADO</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="support-ticket-priority">Prioridad</label>
+                            <select id="support-ticket-priority">
+                                <option value="MEDIA">MEDIA</option>
+                                <option value="BAJA">BAJA</option>
+                                <option value="ALTA">ALTA</option>
+                                <option value="CRITICA">CRITICA</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Crear Ticket</button>
+                </form>
+
+                <div class="form">
+                    <div class="form-group" style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 240px;">
+                            <label for="support-ticket-client">Cliente</label>
+                            <select id="support-ticket-client">
+                                <option value="">Selecciona un cliente...</option>
+                            </select>
+                        </div>
+                        <button type="button" id="btn-load-support-tickets" class="btn btn-primary">Cargar Tickets</button>
+                    </div>
+                    <div id="support-tickets-message" class="message"></div>
+                </div>
+
+                <h3>Listado de tickets</h3>
+                <div id="support-tickets-list" class="interactions-list">
+                    <p>Selecciona un cliente y carga sus tickets de soporte.</p>
+                </div>
+
+                <h3>Detalle del ticket</h3>
+                <div id="support-ticket-detail" class="interactions-list">
+                    <p>Abre un ticket para ver su detalle completo.</p>
+                </div>
+                <div id="support-ticket-detail-message" class="message"></div>
+            </section>
+
+            <section id="clients" class="section">
+                <h2>Gestión de Clientes</h2>
+
+                <form id="client-form" class="form">
+                    <h3>Registrar Cliente</h3>
+                    <div class="form-group">
+                        <label for="client-nombre">Nombre:</label>
+                        <input type="text" id="client-nombre" placeholder="Nombre del cliente">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-correo">Correo:</label>
+                        <input type="email" id="client-correo" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-numero">Número:</label>
+                        <input type="text" id="client-numero" placeholder="Teléfono o número de contacto">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-direccion">Dirección:</label>
+                        <input type="text" id="client-direccion" placeholder="Dirección del cliente">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-nit">NIT:</label>
+                        <input type="text" id="client-nit" placeholder="Número de identificación tributaria">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registrar cliente</button>
+                </form>
+
+                <div id="client-message" class="message"></div>
+
+                <div class="form client-search-panel">
+                    <h3>Buscar Cliente</h3>
+                    <div class="form-group">
+                        <label for="client-search-input">Buscar por nombre, correo o número:</label>
+                        <input type="text" id="client-search-input" placeholder="Ej: Juan, juan@correo.com, 3001234">
+                        <small class="muted">Resultados en menos de 3 segundos. Escribe al menos 2 caracteres.</small>
+                    </div>
+                    <div id="client-search-meta" class="muted"></div>
+                    <div id="client-search-results" class="interactions-list">
+                        <p>Ingresa un criterio de búsqueda para ver coincidencias.</p>
+                    </div>
+                </div>
+
+                <div class="form client-detail-panel">
+                    <h3>Ficha Completa</h3>
+                    <div id="client-detail" class="interactions-list">
+                        <p>Selecciona un cliente desde los resultados para ver su ficha completa.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="kpis" class="section">
+                <h2>Panel de Métricas (KPIs)</h2>
+
+                <form id="kpis-form" class="form">
+                    <div class="form-group">
+                        <label for="kpis-month">Mes</label>
+                        <input type="month" id="kpis-month" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kpis-vendedor">Vista</label>
+                        <select id="kpis-vendedor">
+                            <option value="">Equipo (todos los vendedores)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Cargar KPIs</button>
+                    <div id="kpis-message" class="message"></div>
+                </form>
+
+                <div class="rendimiento-section">
+                    <h4>Resumen por vendedor</h4>
+                    <div style="overflow-x: auto;">
+                        <table class="rendimiento-table" id="kpis-table">
+                            <thead>
+                                <tr>
+                                    <th>Vendedor</th>
+                                    <th>Total ventas (mes)</th>
+                                    <th>% vs mes anterior</th>
+                                    <th>Promedio cierre</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4">Carga los KPIs para ver resultados.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="opportunities" class="section">
+                <h2>Registro de Oportunidades de Negocio</h2>
+
+                <form id="opportunity-form" class="form">
+                    <div class="form-group">
+                        <label for="opportunity-name">Nombre de la oportunidad:</label>
+                        <input type="text" id="opportunity-name" placeholder="Ej: Renovación anual corporativa" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="opportunity-client">Cliente asociado:</label>
+                        <select id="opportunity-client" required>
+                            <option value="">Selecciona un cliente...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="opportunity-vendedor">Vendedor responsable:</label>
+                        <input type="text" id="opportunity-vendedor" list="opportunity-vendedores-list" placeholder="Nombre del vendedor" required>
+                        <datalist id="opportunity-vendedores-list"></datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fecha de creación:</label>
+                        <input type="text" value="Se registra automáticamente al guardar" readonly>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Registrar oportunidad</button>
+                </form>
+
+                <div id="opportunity-message" class="message"></div>
+
+                <div class="form" style="padding: 1rem 1.5rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                        <label for="opportunity-search-client-code">Buscar por código de cliente:</label>
+                        <input type="text" id="opportunity-search-client-code" placeholder="Ej: CLI-ABCD1234">
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <button type="button" id="btn-search-opportunity" class="btn btn-secondary">Buscar oportunidad</button>
+                        <button type="button" id="btn-clear-opportunity-search" class="btn btn-primary">Ver todas</button>
+                    </div>
+                </div>
+
+                <h3>Oportunidades registradas</h3>
+                <div id="opportunities-list" class="interactions-list">
+                    <p>Cargando oportunidades...</p>
+                </div>
+
+                <h3>Pipeline de Ventas</h3>
+                <div id="pipeline-summary" class="interactions-list">
+                    <p>Calculando etapas...</p>
+                </div>
+                <div id="pipeline-board" class="pipeline-board"></div>
+            </section>
+
+            <!-- Config Section -->
+            <section id="config" class="section">
+                <h2>Configuración</h2>
+                <div class="config-info" id="api-config-panel">
+                    <h3>Información de la API</h3>
+                    <ul id="config-list">
+                        <li>Cargando información...</li>
+                    </ul>
+                </div>
+
+                <div id="loyalty-config-panel" class="form" style="display: none;">
+                    <h3>Configuración de Fidelización</h3>
+
+                    <form id="loyalty-config-form">
+                        <div class="form-group">
+                            <label for="loyalty-amount-per-point">Monto por bloque (Q)</label>
+                            <input type="number" id="loyalty-amount-per-point" min="0.01" step="0.01" required>
+                            <small class="muted">Ejemplo: si es 10, el sistema evalúa un bloque por cada Q10 de compra.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loyalty-points-per-block">Puntos por bloque</label>
+                            <input type="number" id="loyalty-points-per-block" min="1" step="1" required>
+                            <small class="muted">Ejemplo: si es 1, asigna 1 punto por cada bloque configurado.</small>
+                        </div>
+
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button type="submit" class="btn btn-primary">Guardar configuración</button>
+                        </div>
+                    </form>
+
+                    <div id="loyalty-config-message" class="message"></div>
+                </div>
+
+                <div id="rewards-config-panel" class="form" style="display: none;">
+                    <h3>Gestión de Premios</h3>
+
+                    <form id="reward-admin-form">
+                        <input type="hidden" id="admin-reward-id">
+
+                        <div class="form-group">
+                            <label for="admin-reward-name">Nombre del premio</label>
+                            <input type="text" id="admin-reward-name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin-reward-description">Descripción</label>
+                            <textarea id="admin-reward-description" rows="2"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin-reward-cost">Costo en puntos</label>
+                            <input type="number" id="admin-reward-cost" min="1" step="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin-reward-type">Tipo de descuento</label>
+                            <select id="admin-reward-type" required>
+                                <option value="PORCENTAJE">Porcentaje</option>
+                                <option value="MONTO">Monto fijo</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin-reward-value">Valor del descuento</label>
+                            <input type="number" id="admin-reward-value" min="0.01" step="0.01" required>
+                            <small class="muted">Si el tipo es porcentaje, ingresa un valor entre 0.01 y 100.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin-reward-active">Activo</label>
+                            <select id="admin-reward-active" required>
+                                <option value="1">Sí</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button type="submit" class="btn btn-primary" id="btn-save-reward">Guardar premio</button>
+                            <button type="button" class="btn btn-secondary" id="btn-cancel-reward-edit">Cancelar edición</button>
+                        </div>
+                    </form>
+
+                    <div id="rewards-admin-message" class="message"></div>
+
+                    <h3 style="margin-top: 1rem;">Premios configurados</h3>
+                    <div id="rewards-admin-list" class="interactions-list">
+                        <p>Cargando premios...</p>
+                    </div>
+                </div>
+
+                <div id="users-admin-panel" class="form" style="display: none;">
+                    <h3>Administración de Usuarios</h3>
+
+                    <form id="user-admin-form">
+                        <input type="hidden" id="admin-user-id">
+
+                        <div class="form-group">
+                            <label for="admin-user-name">Nombre</label>
+                            <input type="text" id="admin-user-name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin-user-email">Correo</label>
+                            <input type="email" id="admin-user-email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin-user-role">Rol</label>
+                            <select id="admin-user-role" required>
+                                <option value="gerente">Gerente</option>
+                                <option value="vendedor">Vendedor</option>
+                                <option value="it">IT</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin-user-password">Contraseña (mínimo 8)</label>
+                            <input type="password" id="admin-user-password" minlength="8" placeholder="Solo obligatoria al crear o cambiar">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="admin-user-active">Estado</label>
+                            <select id="admin-user-active" required>
+                                <option value="1">Activo</option>
+                                <option value="0">Inactivo</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button type="submit" class="btn btn-primary" id="btn-save-user">Guardar usuario</button>
+                            <button type="button" class="btn btn-secondary" id="btn-cancel-user-edit">Cancelar edición</button>
+                        </div>
+                    </form>
+
+                    <div id="users-admin-message" class="message"></div>
+
+                    <h3 style="margin-top: 1rem;">Usuarios registrados</h3>
+                    <div id="users-admin-list" class="interactions-list">
+                        <p>Cargando usuarios...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div id="sale-confirm-modal" class="modal" style="display: none;" aria-hidden="true" role="dialog" aria-modal="true">
+            <div class="modal-backdrop" data-action="close"></div>
+            <div class="modal-card" role="document">
+                <div class="modal-header">
+                    <h3>Confirmar venta</h3>
+                    <button type="button" class="btn btn-danger modal-close" data-action="close" aria-label="Cerrar">×</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="interaction-item" style="margin-bottom: 1rem;">
+                        <h4>Resumen</h4>
+                        <p><strong>Cliente:</strong> <span id="sale-confirm-client">-</span></p>
+                        <p><strong>Vendedor:</strong> <span id="sale-confirm-vendor">-</span></p>
+                        <p><strong>Total:</strong> <span id="sale-confirm-total">-</span></p>
+                        <p><strong>Fecha:</strong> <span id="sale-confirm-date">-</span></p>
+                        <p><strong>Estado:</strong> <span id="sale-confirm-status">-</span></p>
+                    </div>
+
+                    <div class="interaction-item" style="margin-bottom: 0;">
+                        <h4>Premios disponibles</h4>
+                        <p class="muted" style="margin-top: -0.25rem;">Puntos actuales: <strong id="sale-confirm-points">-</strong></p>
+                        <div id="sale-confirm-rewards" class="modal-rewards">
+                            <p>Cargando premios...</p>
+                        </div>
+                        <div id="sale-confirm-message" class="message"></div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-sale-confirm-cancel" data-action="close">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btn-sale-confirm-accept">Confirmar venta</button>
+                </div>
+            </div>
+        </div>
+
+        <footer id="main-footer" class="footer" style="display: none;">
+            <p>&copy; 2026 ERP Ventas. Todos los derechos reservados.</p>
+        </footer>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/vendor/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

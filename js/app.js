@@ -768,6 +768,25 @@ function setAuthenticatedLayout(isLoggedIn) {
     document.getElementById('main-content').style.display = isLoggedIn ? 'block' : 'none';
     document.getElementById('main-footer').style.display = isLoggedIn ? 'block' : 'none';
     document.getElementById('session-info').style.display = isLoggedIn ? 'inline-flex' : 'none';
+
+    // Control del toggle de navegación móvil: solo mostrar cuando esté autenticado
+    try {
+        const navToggle = document.getElementById('nav-toggle');
+        if (navToggle) {
+            if (!isLoggedIn) {
+                navToggle.style.display = 'none';
+                navToggle.setAttribute('aria-expanded', 'false');
+                const navbar = document.getElementById('main-navbar');
+                if (navbar) navbar.classList.remove('open');
+            } else {
+                // Mostrar toggle solo en pantallas pequeñas
+                const shouldShow = window.matchMedia('(max-width: 768px)').matches;
+                navToggle.style.display = shouldShow ? 'inline-flex' : 'none';
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
 }
 
 async function startAuthenticatedApp(user) {
